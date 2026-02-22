@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hiragana Typing Portal</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+
+        :root {
+            --bg-color: #fffafb;
+            --v1-color: #ffb3c1; /* Soft Sakura */
+            --v2-color: #ff4d6d; /* Vivid Pink */
+            --title-dark: #8a1c3a; 
+            --text-dark: #4a4a4a;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-color);
+            font-family: 'Nunito', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-dark);
+        }
+
+        /* Top Bar Layout */
+        .top-bar {
+            background-color: #fff;
+            width: 100%;
+            padding: 15px 20px;
+            border-bottom: 2px solid #ffe4eb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .top-note-text {
+            margin: 0;
+            font-weight: 800;
+            color: var(--v2-color);
+            font-size: 1.1rem;
+        }
+
+        /* Teacher Menu Button */
+        .teacher-menu-btn {
+            position: absolute;
+            right: 20px;
+            background: white;
+            border: 2px solid var(--v1-color);
+            padding: 8px 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 700;
+            color: #d6336c;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .teacher-menu-btn:hover {
+            background: var(--v1-color);
+            color: white;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 50px 20px 30px;
+        }
+
+        .header h1 {
+            color: var(--title-dark);
+            font-size: 3.2rem;
+            margin: 0;
+            font-weight: 900;
+            letter-spacing: 1px;
+        }
+
+        .header p {
+            color: #888;
+            margin-top: 10px;
+            font-size: 1.1rem;
+        }
+
+        /* Card Container */
+        .container {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 10px 20px 60px;
+            max-width: 1100px;
+        }
+
+        .card {
+            background: white;
+            width: 360px;
+            border-radius: 40px;
+            padding: 60px 35px 45px;
+            text-decoration: none;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 30px rgba(255, 182, 193, 0.15);
+            border: 4px solid transparent;
+            box-sizing: border-box;
+        }
+
+        .card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 25px 50px rgba(255, 77, 109, 0.25);
+        }
+
+        .icon { 
+            font-size: 5rem;
+            margin-bottom: 25px;
+        }
+
+        /* English Main Title, Japanese Subtle */
+        .title-group {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .title-en { 
+            font-size: 1.7rem; 
+            font-weight: 900; 
+            color: inherit; 
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .title-jp { 
+            font-size: 1rem; 
+            font-weight: 700;
+            opacity: 0.45; 
+            display: block;
+        }
+
+        /* Feature List */
+        .feature-box {
+            width: 100%;
+            margin-bottom: 40px;
+            text-align: left;
+            flex-grow: 1;
+        }
+
+        .feature-item {
+            margin: 15px 0;
+            font-weight: 700;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .feature-item span {
+            margin-right: 12px;
+            font-size: 1.3rem;
+        }
+
+        /* Button */
+        .btn {
+            width: 100%;
+            padding: 20px;
+            border-radius: 25px;
+            color: white;
+            font-weight: 900;
+            font-size: 1.2rem;
+            text-align: center;
+            letter-spacing: 1.5px;
+        }
+
+        /* V1 Styling (Step 1) */
+        .v1 { border-color: var(--v1-color); color: #d6336c; }
+        .v1 .btn { background-color: var(--v1-color); }
+        
+        /* V2 Styling (Step 2) */
+        .v2 { border-color: var(--v2-color); color: #a4133c; }
+        .v2 .btn { background-color: var(--v2-color); }
+
+        /* Teacher Drawer (Side Menu) */
+        #drawer {
+            position: fixed;
+            right: -400px;
+            top: 0;
+            width: 360px;
+            height: 100%;
+            background: white;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.15);
+            transition: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 101;
+            padding: 50px 30px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        #drawer.open { right: 0; }
+        
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(138, 28, 58, 0.3);
+            z-index: 100;
+            backdrop-filter: blur(4px);
+        }
+
+        /* Teacher Guide Styling */
+        .teacher-guide h3 {
+            font-size: 1.3rem;
+            color: #8a1c3a;
+            border-left: 5px solid #ff4d6d;
+            padding-left: 12px;
+            margin-bottom: 25px;
+            margin-top: 0;
+        }
+
+        .guide-section {
+            margin-bottom: 25px;
+        }
+
+        .guide-section p {
+            font-size: 1rem;
+            line-height: 1.4;
+            margin: 0 0 10px 0;
+        }
+
+        .guide-section ul {
+            margin: 0;
+            padding-left: 20px;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .guide-section li { margin-bottom: 8px; }
+
+        .sub-text {
+            font-size: 0.85rem;
+            color: #d6336c;
+            font-weight: bold;
+            display: block;
+            margin-top: 2px;
+        }
+
+        @media (max-width: 768px) {
+            .top-bar { flex-direction: column; padding: 15px; gap: 12px; }
+            .teacher-menu-btn { position: static; }
+            .container { flex-direction: column; align-items: center; }
+            .card { width: 95%; }
+            #drawer { width: 300px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <p class="top-note-text">Use your English keyboard (Romaji input)</p>
+        <button class="teacher-menu-btn" onclick="toggleDrawer()">For Teachers / 日本語教師用ガイド</button>
+    </div>
+
+    <div id="overlay" onclick="toggleDrawer()"></div>
+    <div id="drawer">
+        <div class="teacher-guide">
+            <h3>日本語教師用：活用ガイド</h3>
+            
+            <div class="guide-section">
+                <p><strong>🌸 Pick & Practice (v2)</strong>
+                <span class="sub-text">【導入・習得期】文字を集中して覚える</span></p>
+                <ul>
+                    <li><strong>授業での使い方:</strong> その日に習った特定の「行（あ行・か行等）」だけを学生に選ばせ、反復練習させます。</li>
+                    <li><strong>指導ポイント:</strong> 全てを習っていない初級者の学習負担を抑えた、スモールステップな指導に最適です。</li>
+                </ul>
+            </div>
+
+            <hr style="border: 0; border-top: 1px dashed #ffb3c1; margin: 20px 0;">
+
+            <div class="guide-section">
+                <p><strong>🔥 All-in-One Test (v1)</strong>
+                <span class="sub-text">【定着・応用期】ランダム出題で実力確認</span></p>
+                <ul>
+                    <li><strong>授業での使い方:</strong> 50音の導入後のまとめテストや、復習用のアクティビティとして活用します。</li>
+                    <li><strong>指導ポイント:</strong> 「Correct count（正解数）」を競わせるなど、ゲーム要素のあるタスクとして盛り上がります。</li>
+                </ul>
+            </div>
+
+            <hr style="border: 0; border-top: 1px dashed #ffb3c1; margin: 20px 0;">
+
+            <p style="font-size: 0.8rem; color: #999; line-height: 1.5;">
+                <strong>共通事項:</strong><br>
+                どちらもローマ字入力専用です。デバイスの日本語設定は不要。英語キーボードのまま即座に開始できます。
+            </p>
+        </div>
+    </div>
+
+    <div class="header">
+        <h1>Hiragana Typing</h1>
+        <p>Choose your practice style below</p>
+    </div>
+
+    <div class="container">
+        
+        <a href="https://bestsemi.github.io/learning-japanese/01_Beginner/hiragana/typing/hiragana-typing-v2/" class="card v1">
+            <div class="icon">🌸</div>
+            <div class="title-group">
+                <span class="title-en">Pick & Practice</span>
+                <span class="title-jp">えらんで れんしゅう</span>
+            </div>
+            <div class="feature-box">
+                <div class="feature-item"><span>🎯</span> Pick specific rows to learn</div>
+                <div class="feature-item"><span>🔰</span> For Beginners</div>
+            </div>
+            <div class="btn">START TYPING</div>
+        </a>
+
+        <a href="https://bestsemi.github.io/learning-japanese/01_Beginner/hiragana/typing/hiragana-typing-v1/" class="card v2">
+            <div class="icon">🔥</div>
+            <div class="title-group">
+                <span class="title-en">All-in-One Test</span>
+                <span class="title-jp">ぜんぶで テスト</span>
+            </div>
+            <div class="feature-box">
+                <div class="feature-item"><span>⚡</span> All characters at random</div>
+                <div class="feature-item"><span>📊</span> Check your accuracy score</div>
+            </div>
+            <div class="btn">START TEST</div>
+        </a>
+
+    </div>
+
+    <script>
+        function toggleDrawer() {
+            const drawer = document.getElementById('drawer');
+            const overlay = document.getElementById('overlay');
+            drawer.classList.toggle('open');
+            overlay.style.display = drawer.classList.contains('open') ? 'block' : 'none';
+        }
+    </script>
+
+</body>
+</html>
