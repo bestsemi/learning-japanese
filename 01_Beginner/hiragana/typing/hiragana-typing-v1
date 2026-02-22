@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hiragana Typing Practice - Smart Challenge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-pink: #ff69b4;
+            --soft-pink: #fff0f5;
+            --border-pink: #ffb6c1;
+            --accent-pink: #ff1493;
+            --text-color: #5d4037;
+            --target-mark: #ff1493;
+        }
+
+        body { 
+            font-family: "UD Digital Kyokasho N-R", "UD デジタル 教科書体 N-R", "BIZ UDPGothic", "Zen Maru Gothic", sans-serif; 
+            background-color: var(--soft-pink); 
+            color: var(--text-color); 
+            margin: 0; 
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .app-card {
+            background: white;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin: 5px;
+            border-radius: 15px;
+            padding: 8px;
+            border: 2px solid var(--border-pink);
+            box-sizing: border-box;
+            min-height: 0;
+            position: relative;
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin: 5px 0 10px 0;
+        }
+
+        .app-title {
+            font-size: 20px;
+            text-align: center;
+            color: var(--text-color);
+            margin: 0;
+            letter-spacing: 2px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .menu-btn {
+            position: absolute;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: var(--primary-pink);
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            transition: transform 0.2s;
+        }
+
+        .menu-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px 25px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 400px;
+            position: relative;
+            border: 3px solid var(--border-pink);
+            color: var(--text-color);
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px; right: 15px;
+            background: none; border: none;
+            font-size: 28px; color: var(--accent-pink);
+            cursor: pointer; font-weight: bold;
+            line-height: 1;
+        }
+
+        .modal-content h2 { color: var(--primary-pink); margin: 0 0 10px 0; text-align: center; font-size: 22px; }
+        .modal-content hr { border: 1px solid var(--soft-pink); margin: 15px 0; }
+        .modal-content p { font-size: 14px; line-height: 1.6; margin: 5px 0; }
+        .modal-content strong { color: var(--accent-pink); }
+
+        .top-chart-section {
+            flex: 1; 
+            display: flex;
+            flex-direction: column;
+            background: #fffafa;
+            border-radius: 12px;
+            padding: 5px;
+            border: 1px solid var(--border-pink);
+            min-height: 0;
+        }
+
+        .tab-menu { display: flex; justify-content: center; gap: 8px; margin-bottom: 5px; flex-wrap: wrap; }
+        .tab-menu button {
+            font-family: inherit; padding: 4px 12px; font-size: 13px; cursor: pointer;
+            border-radius: 10px; border: 2px solid var(--border-pink); background: white; color: var(--primary-pink); font-weight: bold;
+        }
+        .tab-menu button.active-btn { background: var(--primary-pink); color: white; }
+        
+        /* Romajiボタンのスタイル (Challengeボタンと同じ色に変更) */
+        .tab-menu button#btn-romaji { border-color: #5d4037; color: #5d4037; }
+        .tab-menu button#btn-romaji.romaji-off-btn { background: #5d4037; color: white; }
+
+        /* Challengeボタンのスタイル */
+        .tab-menu button#btn-challenge { border-color: #5d4037; color: #5d4037; }
+        .tab-menu button#btn-challenge.challenge-on { background: #5d4037; color: white; }
+
+        .chart-display-area { 
+            flex: 1; 
+            overflow-y: auto; 
+            display: flex; 
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            padding: 10px 0;
+            scroll-behavior: smooth;
+        }
+        
+        table { border-collapse: separate; border-spacing: 2px; background: white; border-radius: 8px; }
+        td { 
+            border: 1px solid #ffdae0; width: 42px; height: 42px; text-align: center; border-radius: 6px; 
+            background: #fff; position: relative;
+        }
+        
+        /* チャレンジモード時のCSS */
+        .challenge-mode-active td:not(.vowel-label):not(.empty-col) .kana,
+        .challenge-mode-active td:not(.vowel-label):not(.empty-col) .romaji {
+            visibility: hidden;
+        }
+        .challenge-mode-active td:not(.vowel-label):not(.empty-col)::after {
+            content: "?"; color: #eee; font-size: 14px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        }
+
+        /* ローマ字OFF時のCSS */
+        .romaji-off-active td:not(.vowel-label):not(.empty-col) .romaji {
+            visibility: hidden;
+        }
+
+        /* 正解・不正解時にセルを強調して中身を見せるCSS */
+        .show-cell .kana, .show-cell .romaji { visibility: visible !important; }
+        .show-cell::after { display: none !important; }
+
+        .target-cell { border: 3px solid var(--target-mark) !important; background-color: #fff0f5 !important; z-index: 5; }
+        .vowel-label { background: var(--soft-pink); color: var(--accent-pink); font-size: 11px; font-weight: bold; width: 30px; border: none; }
+        .kana { font-size: 18px; font-weight: 700; color: #333; display: block; line-height: 1; }
+        .romaji { font-size: 9px; color: var(--primary-pink); display: block; opacity: 0.8; }
+
+        .bottom-quiz-section {
+            height: 180px; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #fff;
+            border-top: 2px solid var(--soft-pink);
+            padding: 10px;
+            gap: 5px;
+            position: relative;
+        }
+
+        .score-box { position: absolute; top: 10px; right: 20px; font-size: 14px; font-weight: bold; color: var(--accent-pink); }
+        #question { font-size: 70px; color: var(--primary-pink); margin: 0; font-weight: bold; line-height: 1; }
+        .input-wrapper { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        #answer-input { font-family: inherit; font-size: 24px; padding: 8px; width: 160px; text-align: center; border: 2px solid var(--border-pink); border-radius: 20px; outline: none; }
+        .action-btn { padding: 8px 30px; font-size: 16px; font-weight: bold; background: var(--primary-pink); color: white; border: none; border-radius: 15px; cursor: pointer; transition: transform 0.1s; }
+        #next-btn { display: none; background: #4caf50; }
+        #feedback { font-size: 16px; font-weight: bold; height: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="app-card">
+    <div class="header-container">
+        <h1 class="app-title">Hiragana Typing</h1>
+        <button class="menu-btn" onclick="openMenu()">≡</button>
+    </div>
+
+    <div class="top-chart-section">
+        <div class="tab-menu">
+            <button id="btn-basic" onclick="setMode('basic')">Basic</button>
+            <button id="btn-contracted" onclick="setMode('contracted')">Contracted</button>
+            <button id="btn-foreign" onclick="setMode('foreign')">Foreign</button>
+            <button id="btn-mix" onclick="setMode('mix')">MIX</button>
+            <button id="btn-romaji" onclick="toggleRomaji()">Romaji ON</button>
+            <button id="btn-challenge" onclick="toggleChallenge()">Challenge OFF</button>
+        </div>
+        <div id="display-area" class="chart-display-area">
+            <div id="chart-container"></div>
+        </div>
+    </div>
+
+    <div class="bottom-quiz-section">
+        <div class="score-box">Correct: <span id="score-count">0</span></div>
+        <div id="question">?</div>
+        <div class="input-wrapper">
+            <input type="text" id="answer-input" placeholder="Type..." autocomplete="off">
+            <div id="feedback"></div>
+            <div class="btn-group">
+                <button id="check-btn" class="action-btn" onclick="check()">OK (Enter)</button>
+                <button id="next-btn" class="action-btn" onclick="nextQuestion()">Next (Enter)</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="how-to-modal" class="modal-overlay">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeMenu()">×</button>
+        <h2>How to Play</h2>
+        <div class="instructions-eng">
+            <p>1. Look at the Hiragana.</p>
+            <p>2. Type the matching <strong>Romaji</strong> (e.g., "a", "ka").</p>
+            <p>3. Press "Enter" to check.</p>
+            <p style="color: #ff6347; font-size: 13px;"><strong>⚠️Note:</strong> English keyboard ONLY. Typing Hiragana directly will be marked as incorrect!</p>
+        </div>
+        <hr>
+        <div class="instructions-jp">
+            <h2>遊び方</h2>
+            <p>1. 表示された「ひらがな」を見ます。</p>
+            <p>2. その<strong>ローマ字</strong>を入力します（例：あ → a）。</p>
+            <p>3. 「Enter」キーで答え合わせ！</p>
+            <p style="color: #ff6347; font-size: 13px;"><strong>⚠️ 注意:</strong> 英語（アルファベット）入力専用です。ひらがな等で入力すると不正解になります。</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const charts = {
+        basic: [[0,0,"あ","a"],[0,1,"い","i"],[0,2,"う","u"],[0,3,"え","e"],[0,4,"お","o"],[1,0,"か","ka"],[1,1,"き","ki"],[1,2,"く","ku"],[1,3,"け","ke"],[1,4,"こ","ko"],[2,0,"さ","sa"],[2,1,"し","shi"],[2,2,"す","su"],[2,3,"せ","se"],[2,4,"そ","so"],[3,0,"た","ta"],[3,1,"ち","chi"],[3,2,"つ","tsu"],[3,3,"て","te"],[3,4,"と","to"],[4,0,"な","na"],[4,1,"に","ni"],[4,2,"ぬ","nu"],[4,3,"ね","ne"],[4,4,"の","no"],[5,0,"は","ha"],[5,1,"ひ","hi"],[5,2,"ふ","fu"],[5,3,"へ","he"],[5,4,"ほ","ho"],[6,0,"ま","ma"],[6,1,"み","mi"],[6,2,"む","mu"],[6,3,"め","me"],[6,4,"も","mo"],[7,0,"や","ya"],[7,2,"ゆ","yu"],[7,4,"よ","yo"],[8,0,"ら","ra"],[8,1,"り","ri"],[8,2,"る","ru"],[8,3,"れ","re"],[8,4,"ろ","ro"],[9,0,"わ","wa"],[9,2,"を","wo"],[9,4,"ん","nn"],[11,0,"が","ga"],[11,1,"ぎ","gi"],[11,2,"ぐ","gu"],[11,3,"げ","ge"],[11,4,"ご","go"],[12,0,"ざ","za"],[12,1,"じ","ji"],[12,2,"ず","zu"],[12,3,"ぜ","ze"],[12,4,"ぞ","zo"],[13,0,"だ","da"],[13,1,"ぢ","ji"],[13,2,"づ","zu"],[13,3,"で","de"],[13,4,"ど","do"],[14,0,"ば","ba"],[14,1,"び","bi"],[14,2,"ぶ","bu"],[14,3,"べ","be"],[14,4,"ぼ","bo"],[15,0,"ぱ","pa"],[15,1,"ぴ","pi"],[15,2,"ぷ","pu"],[15,3,"ぺ","pe"],[15,4,"ぽ","po"]],
+        contracted: [[0,0,"きゃ","kya"],[0,2,"きゅ","kyu"],[0,4,"きょ","kyo"],[1,0,"しゃ","sha"],[1,2,"しゅ","shu"],[1,4,"しょ","sho"],[2,0,"ちゃ","cha"],[2,2,"ちゅ","chu"],[2,4,"ちょ","cho"],[3,0,"にゃ","nya"],[3,2,"にゅ","nyu"],[3,4,"にょ","nyo"],[4,0,"ひゃ","hya"],[4,2,"ひゅ","hyu"],[4,4,"ひょ","hyo"],[5,0,"みゃ","mya"],[5,2,"みゅ","myu"],[5,4,"みょ","myo"],[6,0,"りゃ","rya"],[6,2,"りゅ","ryu"],[6,4,"りょ","ryo"],[8,0,"ぎゃ","gya"],[8,2,"ぎゅ","gyu"],[8,4,"ぎょ","gyo"],[9,0,"じゃ","ja"],[9,2,"じゅ","ju"],[9,4,"じょ","jo"],[10,0,"びゃ","bya"],[10,2,"びゅ","byu"],[10,4,"びょ","byo"],[11,0,"ぴゃ","pya"],[11,2,"ぴゅ","pyu"],[11,4,"ぴょ","pyo"]],
+        foreign: [[0,0,"ふぁ","fa"],[0,1,"ふぃ","fi"],[0,3,"ふぇ","fe"],[0,4,"ふぉ","fo"],[1,1,"てぃ","thi"],[2,3,"ちぇ","che"],[3,1,"でぃ","dhi"],[3,2,"でゅ","dhu"],[5,3,"じぇ","je"],[6,3,"しぇ","she"],[8,0,"ゔぁ","va"],[8,1,"ゔぃ","vi"],[8,2,"ゔ","vu"],[8,3,"ゔぇ","ve"],[8,4,"ゔぉ","vo"],[9,1,"うぃ","wi"],[9,3,"うぇ","we"],[9,4,"うぉ","who"]]
+    };
+
+    let currentCategory = 'basic'; 
+    let currentQ = null; 
+    let score = 0;
+    let isChallengeMode = false;
+    let isRomajiOn = true;
+
+    function openMenu() {
+        document.getElementById('how-to-modal').style.display = 'flex';
+    }
+
+    function closeMenu() {
+        document.getElementById('how-to-modal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('how-to-modal');
+        if (event.target == modal) {
+            closeMenu();
+        }
+    }
+
+    function renderSingleTable(mode, labelText) {
+        const list = charts[mode];
+        const maxCol = Math.max(...list.map(d => d[0]));
+        const labels = (mode === 'contracted') ? ["a","i","u","e","o"] : ["a","i","u","e","o"];
+        
+        let html = `<div><small style="color:var(--primary-pink); font-weight:bold;">${labelText}</small><table>`;
+        for (let r = 0; r < 5; r++) {
+            html += `<tr><td class="vowel-label">${labels[r]}</td>`;
+            for (let c = 0; c <= maxCol; c++) {
+                const item = list.find(d => d[0] === c && d[1] === r);
+                if (item) { html += `<td id="cell-${mode}-${c}-${r}"><span class="kana">${item[2]}</span><span class="romaji">${item[3]}</span></td>`; }
+                else { html += '<td class="empty-col" style="border:none;background:none;"></td>'; }
+            }
+            html += '</tr>';
+        }
+        return html + '</table></div>';
+    }
+
+    function setMode(category) {
+        currentCategory = category;
+        const container = document.getElementById('chart-container');
+        document.querySelectorAll('.tab-menu button').forEach(b => {
+            if(b.id !== 'btn-challenge' && b.id !== 'btn-romaji') b.classList.remove('active-btn');
+        });
+        document.getElementById('btn-' + category).classList.add('active-btn');
+        
+        if (category === 'mix') {
+            container.innerHTML = renderSingleTable('basic', 'Basic') + renderSingleTable('contracted', 'Contracted') + renderSingleTable('foreign', 'Foreign');
+        } else {
+            container.innerHTML = renderSingleTable(category, category.toUpperCase());
+        }
+        nextQuestion();
+    }
+
+    function toggleRomaji() {
+        isRomajiOn = !isRomajiOn;
+        const btn = document.getElementById('btn-romaji');
+        const displayArea = document.getElementById('display-area');
+        
+        if (isRomajiOn) {
+            btn.classList.remove('romaji-off-btn');
+            btn.innerText = "Romaji ON";
+            displayArea.classList.remove('romaji-off-active');
+        } else {
+            btn.classList.add('romaji-off-btn');
+            btn.innerText = "Romaji OFF";
+            displayArea.classList.add('romaji-off-active');
+        }
+    }
+
+    function toggleChallenge() {
+        isChallengeMode = !isChallengeMode;
+        const btn = document.getElementById('btn-challenge');
+        const displayArea = document.getElementById('display-area');
+        
+        if (isChallengeMode) {
+            btn.classList.add('challenge-on');
+            btn.innerText = "Challenge ON";
+            displayArea.classList.add('challenge-mode-active');
+        } else {
+            btn.classList.remove('challenge-on');
+            btn.innerText = "Challenge OFF";
+            displayArea.classList.remove('challenge-mode-active');
+        }
+        document.querySelectorAll('td').forEach(td => td.classList.remove('target-cell', 'show-cell'));
+    }
+
+    function showTargetCell(isForceShow) {
+        document.querySelectorAll('td').forEach(td => td.classList.remove('target-cell', 'show-cell'));
+        const cellId = `cell-${currentQ.sourceMode}-${currentQ.data[0]}-${currentQ.data[1]}`;
+        const targetCell = document.getElementById(cellId);
+        if (targetCell) {
+            targetCell.classList.add('target-cell');
+            if (isForceShow) targetCell.classList.add('show-cell');
+            targetCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    function nextQuestion() {
+        let sourceMode = (currentCategory === 'mix') ? ['basic', 'contracted', 'foreign'][Math.floor(Math.random() * 3)] : currentCategory;
+        const source = charts[sourceMode];
+        currentQ = { data: source[Math.floor(Math.random() * source.length)], sourceMode: sourceMode };
+        document.getElementById('question').innerText = currentQ.data[2];
+        const input = document.getElementById('answer-input');
+        input.value = ''; input.disabled = false; input.focus();
+        document.getElementById('feedback').innerText = '';
+        document.getElementById('next-btn').style.display = 'none';
+        document.getElementById('check-btn').style.display = 'inline-block';
+        document.querySelectorAll('td').forEach(td => td.classList.remove('target-cell', 'show-cell'));
+    }
+
+    function check() {
+        const val = document.getElementById('answer-input').value.toLowerCase().trim();
+        if(!val) return;
+
+        const kana = currentQ.data[2];
+        const ans = currentQ.data[3];
+
+        let isCorrect = (val === ans);
+        if (!isCorrect) {
+            const alt = {
+                'し': ['si'], 'しゃ': ['sya'], 'しゅ': ['syu'], 'しょ': ['syo'],
+                'ち': ['ti'], 'ちゃ': ['tya', 'cya'], 'ちゅ': ['tyu', 'cyu'], 'ちょ': ['tyo', 'cyo'],
+                'つ': ['tu'], 'ふ': ['hu'],
+                'じ': ['zi'], 'じゃ': ['zya', 'ja'], 'じゅ': ['zyu', 'ju'], 'じょ': ['zyo', 'jo'],
+                'を': ['o'], 'ん': ['n'], 'ぢ': ['ji', 'di'], 'づ': ['zu', 'du'],
+                'ゔぁ': ['va'], 'ゔぃ': ['vi'], 'ゔ': ['vu'], 'ゔぇ': ['ve'], 'ゔぉ': ['vo']
+            };
+            if (alt[kana] && alt[kana].includes(val)) isCorrect = true;
+        }
+
+        if (isCorrect) {
+            document.getElementById('feedback').innerText = 'Correct!〇';
+            document.getElementById('feedback').style.color = 'var(--accent-pink)';
+            score++; document.getElementById('score-count').innerText = score;
+            document.getElementById('answer-input').disabled = true;
+            document.getElementById('check-btn').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'inline-block';
+            showTargetCell(true);
+        } else {
+            document.getElementById('feedback').innerText = 'Check the chart💡';
+            document.getElementById('feedback').style.color = '#ff6347';
+            showTargetCell(true); 
+        }
+    }
+
+    document.getElementById('answer-input').onkeydown = function(e) {
+        if (e.key === 'Enter') {
+            if (document.getElementById('next-btn').style.display === 'inline-block') nextQuestion();
+            else check();
+        }
+    };
+    setMode('basic');
+</script>
+</body>
+</html>
