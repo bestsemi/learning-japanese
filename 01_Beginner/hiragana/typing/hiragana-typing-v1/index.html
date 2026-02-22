@@ -26,6 +26,33 @@
             overflow: hidden;
         }
 
+        /* 追加：戻るボタンのスタイル */
+        .back-to-portal {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            z-index: 1000;
+            background: white;
+            border: 2px solid var(--border-pink);
+            padding: 6px 12px;
+            border-radius: 50px;
+            text-decoration: none;
+            color: var(--primary-pink);
+            font-weight: 700;
+            font-size: 13px;
+            box-shadow: 0 2px 8px rgba(255, 105, 180, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s ease;
+        }
+
+        .back-to-portal:hover {
+            background-color: var(--primary-pink);
+            color: white;
+            transform: scale(1.05);
+        }
+
         .app-card {
             background: white;
             flex: 1;
@@ -46,6 +73,7 @@
             align-items: center;
             position: relative;
             margin: 5px 0 10px 0;
+            min-height: 40px; /* 戻るボタンとの重なり防止用の高さ確保 */
         }
 
         .app-title {
@@ -131,11 +159,9 @@
         }
         .tab-menu button.active-btn { background: var(--primary-pink); color: white; }
         
-        /* Romajiボタンのスタイル (Challengeボタンと同じ色に変更) */
         .tab-menu button#btn-romaji { border-color: #5d4037; color: #5d4037; }
         .tab-menu button#btn-romaji.romaji-off-btn { background: #5d4037; color: white; }
 
-        /* Challengeボタンのスタイル */
         .tab-menu button#btn-challenge { border-color: #5d4037; color: #5d4037; }
         .tab-menu button#btn-challenge.challenge-on { background: #5d4037; color: white; }
 
@@ -156,7 +182,6 @@
             background: #fff; position: relative;
         }
         
-        /* チャレンジモード時のCSS */
         .challenge-mode-active td:not(.vowel-label):not(.empty-col) .kana,
         .challenge-mode-active td:not(.vowel-label):not(.empty-col) .romaji {
             visibility: hidden;
@@ -165,12 +190,10 @@
             content: "?"; color: #eee; font-size: 14px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
         }
 
-        /* ローマ字OFF時のCSS */
         .romaji-off-active td:not(.vowel-label):not(.empty-col) .romaji {
             visibility: hidden;
         }
 
-        /* 正解・不正解時にセルを強調して中身を見せるCSS */
         .show-cell .kana, .show-cell .romaji { visibility: visible !important; }
         .show-cell::after { display: none !important; }
 
@@ -202,6 +225,10 @@
     </style>
 </head>
 <body>
+
+<a href="https://bestsemi.github.io/learning-japanese/" class="back-to-portal">
+    🏠 <span>Back to TOP (Hiragana Typing)</span>
+</a>
 
 <div class="app-card">
     <div class="header-container">
